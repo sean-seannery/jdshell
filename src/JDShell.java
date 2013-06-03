@@ -3,6 +3,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Scanner;
 
 /**
@@ -15,6 +18,7 @@ import java.util.Scanner;
  */
 public class JDShell {
 	
+	private static String[] peers = {"127.0.0.1", "192.168.44.178"};
 	private static String currentDir;
 
 	/**
@@ -24,23 +28,51 @@ public class JDShell {
 		currentDir = System.getProperty("user.dir");
 		//System.out.println(currentDir);
 		String input = null;
+		JDShellServer server = new JDShellServer();
+		server.start();
+		
 		Scanner in = new Scanner(System.in);
 		System.out.print("JDS%:");
 		while (!(input = in.nextLine()).equals("quit") && !input.equals("exit")){
 			
-			if (input.toLowerCase().startsWith("cd") )
-			{
-				if (input.split(" ").length >= 2){
-					changeDirectory(input.split(" ")[1]);
-				}
-				
-			} else if (!input.equals("")){
-				exec(input);			
-			} else {
+			if (input.equals("")) {
 				System.out.print("JDS%: ");
-			}
+			} else {
+				if (input.toLowerCase().startsWith("cd") )
+				{
+					if (input.split(" ").length >= 2){
+						//change locally
+						changeDirectory(input.split(" ")[1]);
 
+					}
+					
+				} 
+				for (String peer : peers){
+					Socket sender;
+					try {
+						sender = new Socket(peer, JDShellServer.SERVER_PORT);
+						PrintWriter out = new PrintWriter(
+					               new OutputStreamWriter(sender.getOutputStream()));
+						BufferedReader bin = new BufferedReader(
+					               new InputStreamReader(sender.getInputStream()));
+						out.println(input);
+						out.println(currentDir);
+						out.flush();
+						String test;
+						while(( test = bin.readLine()) != null){
+							System.out.println(test);
+						}				
+					} catch (UnknownHostException e) {
+						e.printStackTrace();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			
 		}
+		server.stopMe();
+		
 		
 
 	}
@@ -78,29 +110,8 @@ public class JDShell {
 		System.out.println("Changed to " + currentDir);
 		System.out.print("JDS%: ");
 	}
+	
 
-	private static void exec(String command){
-		String[] commandArgs = command.split(" ");
-
-		try {
-			ProcessBuilder builder = new ProcessBuilder(commandArgs);
-			builder.directory(new File(currentDir));
-			Process proc = builder.start();
-			
-			JDShellCommandReader outputReader = new JDShellCommandReader(proc.getInputStream());
-			JDShellCommandReader errorReader = new JDShellCommandReader(proc.getErrorStream());
-			
-
-			errorReader.start();
-			outputReader.start();
-			proc.waitFor();
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-	}
 
 
 }

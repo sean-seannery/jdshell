@@ -12,15 +12,11 @@ public class JDShellServer extends Thread{
 				socket = new ServerSocket(SERVER_PORT);
 				
 				while (!Thread.interrupted()) {
-				
-				
+							
 					Socket connected_socket = socket.accept();
-					
-					
 					JDShellListenerThread t = new JDShellListenerThread(connected_socket);
 					t.run();
-	
-								
+									
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
