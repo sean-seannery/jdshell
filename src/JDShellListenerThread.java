@@ -2,6 +2,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.Socket;
 
 
@@ -9,6 +11,7 @@ public class JDShellListenerThread {
 
 	Socket connection;
 	private String currentDir;
+	private String peer;
 	
 	public JDShellListenerThread(Socket newConnection){
 		this.connection = newConnection;
@@ -18,7 +21,6 @@ public class JDShellListenerThread {
 	public void run(){
 		BufferedReader in = null;
 		String input = null;
-		String peer = null;
 		try {
 			in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			peer = in.readLine();
@@ -67,23 +69,33 @@ public class JDShellListenerThread {
 
 	private void exec(String command, String peer){
 		String[] commandArgs = command.split(" ");
-
+		PrintWriter out = null;
 		try {
+			out = new PrintWriter(
+		               new OutputStreamWriter(connection.getOutputStream()));
+			
 			ProcessBuilder builder = new ProcessBuilder(commandArgs);
 			builder.directory(new File(currentDir));
+			builder.redirectErrorStream(true);
 			Process proc = builder.start();
 			
-			JDShellCommandReader outputReader = new JDShellCommandReader(proc.getInputStream(), connection, peer);
-			JDShellCommandReader errorReader = new JDShellCommandReader(proc.getErrorStream(), connection, peer);
-			
+			JDShellCommandReader outputReader = new JDShellCommandReader(proc.getInputStream(), out, peer);			
+			outputReader.process();
 
-			errorReader.start();
-			outputReader.start();
+			//wait until the readers complete
 			proc.waitFor();
+
+			
 			
 		} catch (IOException e) {
-			System.out.println("That file or command does not exist");
-			e.printStackTrace();
+			if (e.getMessage().contains("No such file or directory")){
+				out.println("@" + peer);
+				out.println("   ERROR: That file or command does not exist");
+				out.flush();
+				out.close();
+			}
+			else
+				e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
