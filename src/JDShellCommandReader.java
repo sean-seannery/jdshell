@@ -27,9 +27,7 @@ public class JDShellCommandReader extends Thread {
             PrintWriter out = new PrintWriter(
 		               new OutputStreamWriter(connection.getOutputStream()));
             String line=null;
-            InetAddress addr = InetAddress.getLocalHost();
-        	String hostname = addr.getHostName();
-        	out.println("@"+hostname);
+        	
             while ( (line = br.readLine()) != null)
             {
             	lineCounter++;
@@ -42,7 +40,7 @@ public class JDShellCommandReader extends Thread {
             	
                 if (lineCounter > 0 ){
                 	//System.out.print("JDS%:");
-                	out.println("JDS%:");
+                	out.println("@"+peer);
                 	out.flush();
                 }
             	br.close();
