@@ -18,14 +18,16 @@ public class JDShellListenerThread {
 	public void run(){
 		BufferedReader in = null;
 		String input = null;
+		String peer = null;
 		try {
 			in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+			peer = in.readLine();
 			input = in.readLine();
 			currentDir = in.readLine();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+		System.out.println("Connection Accepted");
 		if (input.toLowerCase().startsWith("cd") )
 		{
 			if (input.split(" ").length >= 2){
@@ -33,12 +35,13 @@ public class JDShellListenerThread {
 			}
 			
 		} else if (!input.equals("")){
-			exec(input);			
+			exec(input, peer);			
 		}
 	}
 	
 	
 	private void changeDirectory(String input) {
+		
 		 if (!input.startsWith("/")){
 			File test = new File(currentDir  + input);
 			if (test.exists()) {
@@ -62,7 +65,7 @@ public class JDShellListenerThread {
 		System.out.print("JDS%: ");
 	}
 
-	private void exec(String command){
+	private void exec(String command, String peer){
 		String[] commandArgs = command.split(" ");
 
 		try {
@@ -70,8 +73,8 @@ public class JDShellListenerThread {
 			builder.directory(new File(currentDir));
 			Process proc = builder.start();
 			
-			JDShellCommandReader outputReader = new JDShellCommandReader(proc.getInputStream(), connection);
-			JDShellCommandReader errorReader = new JDShellCommandReader(proc.getErrorStream(), connection);
+			JDShellCommandReader outputReader = new JDShellCommandReader(proc.getInputStream(), connection, peer);
+			JDShellCommandReader errorReader = new JDShellCommandReader(proc.getErrorStream(), connection, peer);
 			
 
 			errorReader.start();

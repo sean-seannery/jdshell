@@ -18,7 +18,7 @@ import java.util.Scanner;
  */
 public class JDShell {
 	
-	private static String[] peers = {"127.0.0.1", "192.168.44.178"};
+	private static String[] peers = {"127.0.0.1", "192.168.1.106"};
 	private static String currentDir;
 
 	/**
@@ -55,6 +55,7 @@ public class JDShell {
 					               new OutputStreamWriter(sender.getOutputStream()));
 						BufferedReader bin = new BufferedReader(
 					               new InputStreamReader(sender.getInputStream()));
+						out.println(peer);
 						out.println(input);
 						out.println(currentDir);
 						out.flush();

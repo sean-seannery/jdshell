@@ -12,8 +12,10 @@ public class JDShellCommandReader extends Thread {
 
     InputStream inStream;
     Socket connection;
+    String peer;
     // reads everything from is until empty. 
-    JDShellCommandReader(InputStream is, Socket newConnection) {
+    JDShellCommandReader(InputStream is, Socket newConnection, String peer) {
+    	this.peer = peer;
         this.inStream = is;
         connection = newConnection;
     }
