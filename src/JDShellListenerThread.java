@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -7,7 +8,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 
-public class JDShellListenerThread {
+public class JDShellListenerThread extends Thread{
 
 	Socket connection;
 	private String currentDir;
@@ -29,27 +30,48 @@ public class JDShellListenerThread {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("Connection Accepted");
 		if (input.toLowerCase().startsWith("cd") )
 		{
 			if (input.split(" ").length >= 2){
-				changeDirectory(input.split(" ")[1]);
+					
+				try {
+					changeDirectory(input.split(" ")[1]);
+				} catch (FileNotFoundException e) {
+					send(e.getMessage());				
+				}
+				
+				
 			}
 			
 		} else if (!input.equals("")){
 			exec(input, peer);			
 		}
+		try {
+			connection.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	
-	private void changeDirectory(String input) {
-		
-		 if (!input.startsWith("/")){
+	private void changeDirectory(String input) throws FileNotFoundException{
+
+		if (input.equals(".") ) {
+			return;
+		}
+		if (input.equals("..")){
+			String[] dirs = currentDir.split("/");
+			currentDir = "/";
+			//first element is "" and i dont feel like stripping it properly, so i start at index 1
+			for (int i = 1; i < dirs.length -1; i++){
+				currentDir += dirs[i] + "/";
+			}
+		} else if (!input.startsWith("/")){
 			File test = new File(currentDir  + input);
 			if (test.exists()) {
 				currentDir = currentDir + input;
 			} else {
-				System.out.println("Directory does not exist: " + currentDir +  input);
+				throw new FileNotFoundException("@" + peer + "\n" + " ERROR: Directory does not exist: " + currentDir +  input);
 			}		
 			
 		} else {
@@ -57,14 +79,14 @@ public class JDShellListenerThread {
 			if (test.exists()) {
 				currentDir = input;
 			} else {
-				System.out.println("Directory does not exist: " + currentDir +  input);
+				throw new FileNotFoundException("@" + peer + "\n" + " ERROR: Directory does not exist: " +  input);
 			}	
 		}
 		if (!currentDir.endsWith("/")) {
 			currentDir += "/";
 		}
-		System.out.println("Changed to " + currentDir);
-		System.out.print("JDS%: ");
+		send("!CURRENT_DIR: " + currentDir);
+
 	}
 
 	private void exec(String command, String peer){
@@ -98,6 +120,19 @@ public class JDShellListenerThread {
 				e.printStackTrace();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private void send(String value){
+		PrintWriter out;
+		try {
+			out = new PrintWriter(
+			           new OutputStreamWriter(connection.getOutputStream()));
+			out.println(value);
+			out.flush();
+
+		} catch (IOException ioe) {
+			ioe.printStackTrace();
 		}
 	}
 		

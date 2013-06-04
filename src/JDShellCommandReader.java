@@ -39,7 +39,7 @@ public class JDShellCommandReader extends Thread {
                 	out.println("@"+peer );
                 	//out.flush();
                 }
-            	out.println(line);
+            	out.println("  " + line);
             }
             out.flush();
 
