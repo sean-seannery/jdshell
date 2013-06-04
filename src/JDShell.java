@@ -91,7 +91,7 @@ public class JDShell {
 					if (hasErrors == false && !newDir.equals(currentDir))
 						currentDir = newDir;
 				}
-				
+				System.out.println();
 				showPrompt();
 			}
 			
