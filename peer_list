@@ -1,0 +1,14 @@
+#This is a collection of peers relative to this computer
+#these peers should have the same functional role, such as web server, or load
+#load balancer. All of these machines should have a relatively consistent environment
+#as well.... similar software, directory structure, users, etc.
+
+#if you only want to administer remote servers, then remove this localhost
+127.0.0.1
+
+#other servers
+192.168.1.106
+#192.168.1.107
+192.168.1.108
+#192.168.1.109
+#192.168.1.110

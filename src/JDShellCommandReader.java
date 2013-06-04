@@ -8,7 +8,13 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
-
+/**
+ * @author Sean Maloney
+ * 
+ * JDShellCommandReader processes the input/output from external programs and returns them to the client
+ * This is threaded because some applications require that kinda stuff.  Such as ping. which keeps going
+ * and going.
+ */
 public class JDShellCommandReader extends Thread {
 
     InputStream inStream;
